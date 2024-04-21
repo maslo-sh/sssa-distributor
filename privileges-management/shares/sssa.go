@@ -1,10 +1,8 @@
-package sssa
+package shares
 
 import (
 	"fmt"
 	"github.com/SSSaaS/sssa-golang"
-	"log"
-	"privileges-management/broker"
 	"privileges-management/errors"
 	"privileges-management/model"
 	"regexp"
@@ -41,11 +39,11 @@ func DistributeSecrets(sharesMapping map[string]string) error {
 		wg.Add(1)
 
 		go func(topicSuffix, secretShare string) {
-			kafkaWriter := broker.CreateKafkaWriter(topicSuffix)
-			err := broker.WriteMessage(kafkaWriter, topicSuffix, secretShare)
-			if err != nil {
-				log.Printf("failed to publish event to Kafka: %v\n", err)
-			}
+			//	kafkaWriter := broker.CreateKafkaWriter(topicSuffix)
+			//	err := broker.WriteMessage(kafkaWriter, topicSuffix, secretShare)
+			//	if err != nil {
+			//		log.Printf("failed to publish event to Kafka: %v\n", err)
+			//	}
 		}(approver, share)
 	}
 	wg.Wait()

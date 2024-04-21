@@ -6,10 +6,10 @@ import (
 )
 
 type ApprovingPermissionsRepository interface {
-	Read(uint) interface{}
-	Create(interface{})
+	Read(uint) *model.ApprovingPermission
+	Create(*model.ApprovingPermission)
 	Delete(uint)
-	ReadByResourceId(id int) []model.ApprovingPermission
+	ReadByResourceId(id uint) []model.ApprovingPermission
 }
 
 type ApprovingPermissionsRepositoryImpl struct {
@@ -20,15 +20,14 @@ func NewApprovingPermissionsRepository(db *gorm.DB) ApprovingPermissionsReposito
 	return &ApprovingPermissionsRepositoryImpl{db}
 }
 
-func (apr *ApprovingPermissionsRepositoryImpl) Read(id uint) interface{} {
+func (apr *ApprovingPermissionsRepositoryImpl) Read(id uint) *model.ApprovingPermission {
 	var fetchedApprovingPermission model.ApprovingPermission
 	apr.db.First(&fetchedApprovingPermission, id)
-	return fetchedApprovingPermission
+	return &fetchedApprovingPermission
 }
 
-func (apr *ApprovingPermissionsRepositoryImpl) Create(approvingPermission interface{}) {
-	castedApprovingPermission := approvingPermission.(model.ApprovingPermission)
-	apr.db.Create(&castedApprovingPermission)
+func (apr *ApprovingPermissionsRepositoryImpl) Create(approvingPermission *model.ApprovingPermission) {
+	apr.db.Create(approvingPermission)
 }
 
 func (apr *ApprovingPermissionsRepositoryImpl) Delete(id uint) {
@@ -36,9 +35,8 @@ func (apr *ApprovingPermissionsRepositoryImpl) Delete(id uint) {
 	apr.db.Delete(&fetchedApprovingPermission, id)
 }
 
-func (apr *ApprovingPermissionsRepositoryImpl) ReadByResourceId(id int) []model.ApprovingPermission {
+func (apr *ApprovingPermissionsRepositoryImpl) ReadByResourceId(id uint) []model.ApprovingPermission {
 	var permissions []model.ApprovingPermission
-	apr.db.Find(&permissions, "id = ?", id)
-
+	apr.db.Find(&permissions, "resource_id = ?", id)
 	return permissions
 }

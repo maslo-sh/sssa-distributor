@@ -11,3 +11,13 @@ kafka:
   port: 9200
   writer-topic: "sssa-shares-topic"
 
+rabbitmq:
+  host: "localhost"
+  port: 5672
+  access-credentials:
+    username: "guest"
+    password: "guest"
+  exchange-name: "sssa-channel-exchange"
+  queue-name: "sssa-message-queue"
+
+

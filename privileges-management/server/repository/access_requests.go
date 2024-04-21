@@ -6,8 +6,9 @@ import (
 )
 
 type AccessRequestsRepository interface {
-	Read(uint) interface{}
-	Create(interface{})
+	ReadAll() []model.AccessRequest
+	Read(uint) *model.AccessRequest
+	Create(*model.AccessRequest)
 	Delete(uint)
 }
 
@@ -19,15 +20,20 @@ func NewAccessRequestRepository(db *gorm.DB) AccessRequestsRepository {
 	return &AccessRequestsRepositoryImpl{db}
 }
 
-func (ar *AccessRequestsRepositoryImpl) Read(id uint) interface{} {
+func (ar *AccessRequestsRepositoryImpl) ReadAll() []model.AccessRequest {
+	var requests []model.AccessRequest
+	ar.db.Find(&requests)
+	return requests
+}
+
+func (ar *AccessRequestsRepositoryImpl) Read(id uint) *model.AccessRequest {
 	var fetchedAccessRequest *model.AccessRequest
 	ar.db.First(&fetchedAccessRequest, id)
 	return fetchedAccessRequest
 }
 
-func (ar *AccessRequestsRepositoryImpl) Create(accessRequest interface{}) {
-	castedAccessRequest := accessRequest.(*model.AccessRequest)
-	ar.db.Create(&castedAccessRequest)
+func (ar *AccessRequestsRepositoryImpl) Create(accessRequest *model.AccessRequest) {
+	ar.db.Create(&accessRequest)
 }
 
 func (ar *AccessRequestsRepositoryImpl) Delete(id uint) {

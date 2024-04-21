@@ -24,13 +24,16 @@ func NewRouter() *gin.Engine {
 
 	router := service.Group("/api")
 	loginRouter := router.Group("/login")
-	loginRouter.POST("/", loginHandler.Login)
+	loginRouter.POST("", loginHandler.Login)
 
 	requestRouter := router.Group("/request")
-	requestRouter.PUT("/", reqHandler.RequestTemporaryAccess)
+	requestRouter.GET("", reqHandler.GetAllRequests)
+	requestRouter.PUT("", reqHandler.RequestTemporaryAccess)
 
 	managementRouter := router.Group("/management")
-	managementRouter.POST("/approver", managementHandler.AssignApproversToResource)
+	managementRouter.PUT("/approver", managementHandler.AssignApproversToResource)
+	managementRouter.POST("/resource", managementHandler.RegisterResource)
+	managementRouter.POST("/approver", managementHandler.RegisterApprover)
 
 	approveRouter := router.Group("/approvals")
 	approveRouter.PUT("/deny", approveHandler.Deny)
@@ -52,14 +55,14 @@ func createHandlers(
 	accessRequestRepo repository.AccessRequestsRepository,
 	conn *ldap.Conn) (handlers.RequestHandler, handlers.ApprovalsHandler, handlers.ManagementHandler, handlers.LoginHandler) {
 
-	return handlers.NewRequestHandler(resourcesRepo, approvingPermsRepo), handlers.NewApprovalsHandler(accessRequestRepo),
-		handlers.NewManagementHandler(approvingPermsRepo), handlers.NewLoginHandler(conn)
+	return handlers.NewRequestHandler(resourcesRepo, approvingPermsRepo, accessRequestRepo), handlers.NewApprovalsHandler(accessRequestRepo),
+		handlers.NewManagementHandler(approvingPermsRepo, resourcesRepo), handlers.NewLoginHandler(conn)
 }
 
 func createConnectors() (db *gorm.DB, conn *ldap.Conn, err error) {
 	ldapConn, err := database.ConnectToAD()
 	if err != nil {
-		return nil, nil, err
+		//return nil, nil, err
 	}
 
 	sqlDb, err := database.ConnectToDatabase()

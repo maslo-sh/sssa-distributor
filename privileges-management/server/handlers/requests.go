@@ -8,21 +8,22 @@ import (
 	"privileges-management/model"
 	"privileges-management/model/dto"
 	"privileges-management/server/repository"
-	"privileges-management/sssa"
-	"strconv"
+	"privileges-management/shares"
 )
 
 type RequestHandler interface {
-	RequestTemporaryAccess(ctx *gin.Context)
+	RequestTemporaryAccess(*gin.Context)
+	GetAllRequests(*gin.Context)
 }
 
 type RequestHandlerImpl struct {
 	resourcesRepository   repository.ResourcesRepository
 	permissionsRepository repository.ApprovingPermissionsRepository
+	requestsRepository    repository.AccessRequestsRepository
 }
 
-func NewRequestHandler(resourcesRepo repository.ResourcesRepository, permissionsRepo repository.ApprovingPermissionsRepository) RequestHandler {
-	return &RequestHandlerImpl{resourcesRepository: resourcesRepo, permissionsRepository: permissionsRepo}
+func NewRequestHandler(resourcesRepo repository.ResourcesRepository, permissionsRepo repository.ApprovingPermissionsRepository, requestsRepo repository.AccessRequestsRepository) RequestHandler {
+	return &RequestHandlerImpl{resourcesRepository: resourcesRepo, permissionsRepository: permissionsRepo, requestsRepository: requestsRepo}
 }
 
 func (rh *RequestHandlerImpl) RequestTemporaryAccess(ctx *gin.Context) {
@@ -30,42 +31,52 @@ func (rh *RequestHandlerImpl) RequestTemporaryAccess(ctx *gin.Context) {
 	var resourceId int
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, err)
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, err)
-	}
-
-	resourceId, err = strconv.Atoi(req.ResourceID)
-	resource := rh.resourcesRepository.Read(uint(resourceId))
-	castedResource := resource.(*model.Resource)
-	approvingPermissions := rh.permissionsRepository.ReadByResourceId(resourceId)
+	resource := rh.resourcesRepository.Read(uint(req.ResourceID))
+	approvingPermissions := rh.permissionsRepository.ReadByResourceId(uint(req.ResourceID))
 
 	var credentials model.Credentials
-	credentials, err = sssa.GenerateCredentials()
+	credentials, err = shares.GenerateCredentials()
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, err)
+		ctx.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
 
-	if castedResource.MinSharesRequired > len(approvingPermissions) {
-		ctx.JSON(http.StatusBadRequest, errors.New("not enough approvers to perform secret sharing"))
+	if resource.MinSharesRequired > len(approvingPermissions) {
+		ctx.AbortWithError(http.StatusBadRequest, errors.New("not enough approvers to perform secret sharing"))
+		return
 	}
 
-	var shares []string
-	shares, err = createSecretsFromCredentials(credentials, castedResource)
+	var generatedShares []string
+	generatedShares, err = createSecretsFromCredentials(credentials, resource)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err)
+		ctx.AbortWithError(http.StatusInternalServerError, err)
+		return
 	}
 
-	sharesMapping := createSharesMapping(shares, castedResource, approvingPermissions)
+	sharesMapping := createSharesMapping(generatedShares, resource, approvingPermissions)
 
-	err = sssa.DistributeSecrets(sharesMapping)
+	err = shares.DistributeSecrets(sharesMapping)
 
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, err)
+		//ctx.JSON(http.StatusInternalServerError, err)
+		//return
 	}
+
+	rh.requestsRepository.Create(&model.AccessRequest{
+		Username:        req.Username,
+		ResourceID:      uint(resourceId),
+		ValidityInHours: req.ValidityInHours,
+	})
 
 	ctx.JSON(http.StatusOK, nil)
+}
+
+func (rh *RequestHandlerImpl) GetAllRequests(ctx *gin.Context) {
+	requests := rh.requestsRepository.ReadAll()
+	ctx.JSON(http.StatusOK, requests)
 }
 
 func createSharesMapping(shares []string, resource *model.Resource, permissions []model.ApprovingPermission) map[string]string {
@@ -78,10 +89,12 @@ func createSharesMapping(shares []string, resource *model.Resource, permissions 
 }
 
 func createSecretsFromCredentials(credentials model.Credentials, resource *model.Resource) ([]string, error) {
-	shares, err := sssa.CreateSecretsFromCredentials(resource.MinSharesRequired, resource.SharesCreated, credentials)
+	generatedShares, err := shares.CreateSecretsFromCredentials(resource.MinSharesRequired, resource.SharesCreated, credentials)
 	if err != nil {
-		return shares, err
+		return generatedShares, err
 	}
 
-	return shares, nil
+	shares.RetrieveCredentialsFromSecrets(generatedShares)
+
+	return generatedShares, nil
 }

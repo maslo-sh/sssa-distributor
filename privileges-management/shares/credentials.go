@@ -1,8 +1,9 @@
-package sssa
+package shares
 
 import (
 	"github.com/sethvargo/go-password/password"
 	"privileges-management/model"
+	"strconv"
 	"time"
 )
 
@@ -11,7 +12,7 @@ const (
 )
 
 func GenerateCredentials() (model.Credentials, error) {
-	username := "tempuser_" + time.Now().String()
+	username := "tempuser_" + strconv.Itoa(int(time.Now().Unix()))
 	pass, err := password.Generate(PasswordLength, PasswordLength/3, PasswordLength/3, false, true)
 	if err != nil {
 		return model.Credentials{}, err

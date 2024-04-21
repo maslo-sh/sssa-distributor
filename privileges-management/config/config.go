@@ -18,6 +18,17 @@ type Config struct {
 		} `yaml:"access-credentials"`
 	} `yaml:"domain-controller"`
 
+	RabbitMQ struct {
+		Port              int    `yaml:"port"`
+		Host              string `yaml:"host"`
+		ExchangeName      string `yaml:"exchange-name"`
+		QueueName         string `yaml:"queue-name"`
+		AccessCredentials struct {
+			Username string `yaml:"username"`
+			Password string `yaml:"password"`
+		} `yaml:"access-credentials"`
+	} `yaml:"rabbitmq"`
+
 	Kafka struct {
 		Port        int    `yaml:"port"`
 		Host        string `yaml:"host"`
