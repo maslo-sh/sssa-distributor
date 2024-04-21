@@ -3,7 +3,6 @@ package handlers
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"math"
 	"net/http"
 	"privileges-management/model"
@@ -29,7 +28,6 @@ func NewRequestHandler(resourcesRepo repository.ResourcesRepository, permissions
 
 func (rh *RequestHandlerImpl) RequestTemporaryAccess(ctx *gin.Context) {
 	var req dto.RequestAccessPayload
-	var resourceId int
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
 		ctx.AbortWithError(http.StatusBadRequest, err)
@@ -66,13 +64,11 @@ func (rh *RequestHandlerImpl) RequestTemporaryAccess(ctx *gin.Context) {
 		//return
 	}
 
-	id := uuid.New()
-
 	rh.requestsRepository.Create(&model.AccessRequest{
-		ID:              id.String(),
 		Username:        req.Username,
-		ResourceID:      uint(resourceId),
+		ResourceID:      uint(req.ResourceID),
 		ValidityInHours: req.ValidityInHours,
+		Status:          "PENDING",
 		GivenApproves:   0,
 	})
 
@@ -98,8 +94,6 @@ func createSecretsFromCredentials(credentials model.Credentials, resource *model
 	if err != nil {
 		return generatedShares, err
 	}
-
-	shares.RetrieveCredentialsFromSecrets(generatedShares)
 
 	return generatedShares, nil
 }

@@ -1,6 +1,7 @@
 package database
 
 import (
+	"errors"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -65,4 +66,50 @@ func RemoveBucket(bucketName string) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		return tx.DeleteBucket([]byte(bucketName))
 	})
+}
+
+func GetAllItemsFromBucket(bucketName string) ([][]byte, error) {
+	db, err := OpenDatabase()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+	var items [][]byte
+	err = db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(bucketName))
+		if bucket == nil {
+			return nil
+		}
+		c := bucket.Cursor()
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			items = append(items, v)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+func GetNumberOfItemsFromBucket(bucketName string) (int, error) {
+	db, err := OpenDatabase()
+	if err != nil {
+		return 0, err
+	}
+	defer db.Close()
+
+	var count int
+	err = db.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket([]byte(bucketName))
+		if bucket == nil {
+			return errors.New("bucket not found")
+		}
+		c := bucket.Cursor()
+		for k, _ := c.First(); k != nil; k, _ = c.Next() {
+			count++
+		}
+		return nil
+	})
+	return count, nil
 }

@@ -39,6 +39,7 @@ func DistributeSecrets(sharesMapping map[string]string) error {
 		wg.Add(1)
 
 		go func(topicSuffix, secretShare string) {
+			wg.Done()
 			//	kafkaWriter := broker.CreateKafkaWriter(topicSuffix)
 			//	err := broker.WriteMessage(kafkaWriter, topicSuffix, secretShare)
 			//	if err != nil {

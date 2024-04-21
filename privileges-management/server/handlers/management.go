@@ -11,7 +11,6 @@ import (
 type ManagementHandler interface {
 	AssignApproversToResource(*gin.Context)
 	RegisterResource(ctx *gin.Context)
-	RegisterApprover(ctx *gin.Context)
 }
 
 type ManagementHandlerImpl struct {
@@ -52,18 +51,5 @@ func (mh *ManagementHandlerImpl) RegisterResource(ctx *gin.Context) {
 		SharesCreated:     req.SharesCreated,
 		MinSharesRequired: req.MinSharesRequired,
 		ResourceDN:        req.ResourceDN,
-	})
-}
-
-func (mh *ManagementHandlerImpl) RegisterApprover(ctx *gin.Context) {
-	var req dto.ApproverRegistrationPayload
-	err := ctx.ShouldBindJSON(&req)
-	if err != nil {
-		ctx.AbortWithError(http.StatusBadRequest, err)
-	}
-
-	mh.permissionsRepository.Create(&model.ApprovingPermission{
-		Username:   req.Username,
-		ResourceID: uint(req.ResourceID),
 	})
 }

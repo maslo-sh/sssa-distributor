@@ -34,7 +34,6 @@ func NewRouter() *gin.Engine {
 	managementRouter := router.Group("/management")
 	managementRouter.PUT("/approver", managementHandler.AssignApproversToResource)
 	managementRouter.POST("/resource", managementHandler.RegisterResource)
-	managementRouter.POST("/approver", managementHandler.RegisterApprover)
 
 	approveRouter := router.Group("/approvals")
 	approveRouter.PUT("/deny/:id", approveHandler.Deny)

@@ -9,6 +9,7 @@ type AccessRequestsRepository interface {
 	ReadAll() []model.AccessRequest
 	Read(uint) *model.AccessRequest
 	Create(*model.AccessRequest)
+	Update(*model.AccessRequest)
 	Delete(uint)
 }
 
@@ -34,6 +35,10 @@ func (ar *AccessRequestsRepositoryImpl) Read(id uint) *model.AccessRequest {
 
 func (ar *AccessRequestsRepositoryImpl) Create(accessRequest *model.AccessRequest) {
 	ar.db.Create(&accessRequest)
+}
+
+func (ar *AccessRequestsRepositoryImpl) Update(accessRequest *model.AccessRequest) {
+	ar.db.Save(&accessRequest)
 }
 
 func (ar *AccessRequestsRepositoryImpl) Delete(id uint) {
