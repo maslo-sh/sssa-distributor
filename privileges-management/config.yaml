@@ -1,0 +1,13 @@
+domain-controller:
+    host: "localhost"
+    port: 389
+    base-dn: ""
+    access-credentials:
+      username: "CN=Administrator,CN=Users,DC=example,DC=com"
+      password: "password"
+
+kafka:
+  host: "localhost"
+  port: 9200
+  writer-topic: "sssa-shares-topic"
+

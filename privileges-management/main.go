@@ -1,25 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"github.com/SSSaaS/sssa-golang"
 	_ "github.com/SSSaaS/sssa-golang"
+	"privileges-management/database"
+	"privileges-management/server"
 )
 
 func main() {
-	fmt.Println("Hello, World!")
+	database.InitializeSchema()
+	r := server.NewRouter()
 
-	shares, err := sssa.Create(7, 10, "mzomi_bhl_2023")
-	if err != nil {
-		fmt.Printf("failed to create secret: %v\n", err)
-	}
-
-	fmt.Println(shares)
-
-	recovered, err := sssa.Combine(shares[5:10])
-	if err != nil {
-		fmt.Printf("failed to combine secrets: %v\n", err)
-	}
-
-	fmt.Println(recovered)
+	r.Run(":8080")
 }

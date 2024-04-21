@@ -3,10 +3,13 @@ package sssa
 import (
 	"fmt"
 	"github.com/SSSaaS/sssa-golang"
+	"log"
+	"privileges-management/broker"
 	"privileges-management/errors"
 	"privileges-management/model"
 	"regexp"
 	"strings"
+	"sync"
 )
 
 func CreateSecretsFromCredentials(minimum, createdShares int, credentials model.Credentials) ([]string, error) {
@@ -29,6 +32,25 @@ func RetrieveCredentialsFromSecrets(shares []string) (model.Credentials, error) 
 	}
 
 	return makeCredentialsFromRaw(raw), nil
+}
+
+func DistributeSecrets(sharesMapping map[string]string) error {
+	var wg sync.WaitGroup
+
+	for approver, share := range sharesMapping {
+		wg.Add(1)
+
+		go func(topicSuffix, secretShare string) {
+			kafkaWriter := broker.CreateKafkaWriter(topicSuffix)
+			err := broker.WriteMessage(kafkaWriter, topicSuffix, secretShare)
+			if err != nil {
+				log.Printf("failed to publish event to Kafka: %v\n", err)
+			}
+		}(approver, share)
+	}
+	wg.Wait()
+
+	return nil
 }
 
 func makeCredentialsFromRaw(raw string) model.Credentials {
