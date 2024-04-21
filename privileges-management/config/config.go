@@ -28,12 +28,6 @@ type Config struct {
 			Password string `yaml:"password"`
 		} `yaml:"access-credentials"`
 	} `yaml:"rabbitmq"`
-
-	Kafka struct {
-		Port        int    `yaml:"port"`
-		Host        string `yaml:"host"`
-		WriterTopic string `yaml:"writer-topic"`
-	} `yaml:"kafka"`
 }
 
 func GetConfig() Config {

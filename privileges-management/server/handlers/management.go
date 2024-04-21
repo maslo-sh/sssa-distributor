@@ -27,13 +27,10 @@ func (mh *ManagementHandlerImpl) AssignApproversToResource(ctx *gin.Context) {
 	var req dto.ApproverAssignmentPayload
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, err)
+		ctx.AbortWithError(http.StatusBadRequest, err)
 	}
 
 	resourceId := uint(req.ResourceID)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, err)
-	}
 
 	for _, username := range req.Approvers {
 		mh.permissionsRepository.Create(&model.ApprovingPermission{
@@ -48,7 +45,7 @@ func (mh *ManagementHandlerImpl) RegisterResource(ctx *gin.Context) {
 	var req dto.ResourceRegistrationPayload
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, err)
+		ctx.AbortWithError(http.StatusBadRequest, err)
 	}
 
 	mh.resourcesRepository.Create(&model.Resource{
@@ -62,7 +59,7 @@ func (mh *ManagementHandlerImpl) RegisterApprover(ctx *gin.Context) {
 	var req dto.ApproverRegistrationPayload
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, err)
+		ctx.AbortWithError(http.StatusBadRequest, err)
 	}
 
 	mh.permissionsRepository.Create(&model.ApprovingPermission{

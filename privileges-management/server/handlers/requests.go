@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"math"
 	"net/http"
 	"privileges-management/model"
@@ -65,10 +66,14 @@ func (rh *RequestHandlerImpl) RequestTemporaryAccess(ctx *gin.Context) {
 		//return
 	}
 
+	id := uuid.New()
+
 	rh.requestsRepository.Create(&model.AccessRequest{
+		ID:              id.String(),
 		Username:        req.Username,
 		ResourceID:      uint(resourceId),
 		ValidityInHours: req.ValidityInHours,
+		GivenApproves:   0,
 	})
 
 	ctx.JSON(http.StatusOK, nil)

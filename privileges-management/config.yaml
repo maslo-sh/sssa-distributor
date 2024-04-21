@@ -3,13 +3,8 @@ domain-controller:
     port: 389
     base-dn: ""
     access-credentials:
-      username: "CN=Administrator,CN=Users,DC=example,DC=com"
+      username: "cn=admin,dc=mzomi,dc=mgl"
       password: "password"
-
-kafka:
-  host: "localhost"
-  port: 9200
-  writer-topic: "sssa-shares-topic"
 
 rabbitmq:
   host: "localhost"

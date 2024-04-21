@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gopkg.in/ldap.v3"
 	"gorm.io/gorm"
+	"log"
 	"privileges-management/database"
 	"privileges-management/server/handlers"
 	"privileges-management/server/repository"
@@ -15,7 +16,7 @@ func NewRouter() *gin.Engine {
 	db, ldapConn, err := createConnectors()
 
 	if err != nil {
-		panic(err)
+		log.Printf("Error creating connectors: %v", err)
 	}
 
 	permissionsRepository, resourcesRepository, requestsRepository := createRepositories(db)
@@ -36,8 +37,8 @@ func NewRouter() *gin.Engine {
 	managementRouter.POST("/approver", managementHandler.RegisterApprover)
 
 	approveRouter := router.Group("/approvals")
-	approveRouter.PUT("/deny", approveHandler.Deny)
-	approveRouter.PUT("/approve", approveHandler.Approve)
+	approveRouter.PUT("/deny/:id", approveHandler.Deny)
+	approveRouter.PUT("/approve/:id", approveHandler.Approve)
 
 	return service
 }
@@ -62,7 +63,7 @@ func createHandlers(
 func createConnectors() (db *gorm.DB, conn *ldap.Conn, err error) {
 	ldapConn, err := database.ConnectToAD()
 	if err != nil {
-		//return nil, nil, err
+		return nil, nil, err
 	}
 
 	sqlDb, err := database.ConnectToDatabase()

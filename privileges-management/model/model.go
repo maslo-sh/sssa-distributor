@@ -10,13 +10,14 @@ type Credentials struct {
 }
 
 type AccessRequest struct {
-	gorm.Model
+	ID              string    `gorm:"primaryKey"`
 	Username        string    `json:"username"`
 	ResourceID      uint      `json:"resourceId"`
 	ValidityInHours int       `json:"validityInHours,omitempty"`
-	expiryTimestamp time.Time `json:"expiryTimestamp,omitempty"`
-	status          string    `json:"status"`
-	reasoning       string    `json:"justification"`
+	GivenApproves   int       `json:"givenApproves,omitempty"`
+	ExpiryTimestamp time.Time `json:"expiryTimestamp,omitempty"`
+	Status          string    `json:"status"`
+	Reasoning       string    `json:"justification,omitempty"`
 }
 
 type Resource struct {
