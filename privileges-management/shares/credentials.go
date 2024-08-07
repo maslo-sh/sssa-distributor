@@ -4,6 +4,7 @@ import (
 	"github.com/sethvargo/go-password/password"
 	"privileges-management/model"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -17,6 +18,8 @@ func GenerateCredentials() (model.Credentials, error) {
 	if err != nil {
 		return model.Credentials{}, err
 	}
+
+	pass = strings.Replace(pass, ":", "&", -1)
 
 	return model.Credentials{
 		Username: username,

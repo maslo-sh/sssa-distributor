@@ -19,24 +19,7 @@ func OpenDatabase() (*bolt.DB, error) {
 	return db, nil
 }
 
-func CreateBucketIfNotExists(bucketName string) error {
-	db, err := OpenDatabase()
-	if err != nil {
-		return err
-	}
-
-	defer db.Close()
-	return db.Update(func(tx *bolt.Tx) error {
-		_, err = tx.CreateBucketIfNotExists([]byte(bucketName))
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-}
-
-func UpdateToBucket(key, value string) error {
+func UpdateToBucket(bucketName, key, value string) error {
 	db, err := OpenDatabase()
 	if err != nil {
 		return err
@@ -45,7 +28,7 @@ func UpdateToBucket(key, value string) error {
 	defer db.Close()
 	var bucket *bolt.Bucket
 	return db.Update(func(tx *bolt.Tx) error {
-		bucket, err = tx.CreateBucketIfNotExists([]byte(BucketNamePrefix))
+		bucket, err = tx.CreateBucketIfNotExists([]byte(bucketName))
 		if err != nil {
 			return err
 		}
@@ -68,22 +51,20 @@ func RemoveBucket(bucketName string) error {
 	})
 }
 
-func GetAllItemsFromBucket(bucketName string) ([][]byte, error) {
+func GetAllItemsFromBucket(bucketName string) ([]string, error) {
 	db, err := OpenDatabase()
 	if err != nil {
 		return nil, err
 	}
 	defer db.Close()
-	var items [][]byte
+	items := make([]string, 0, 50)
+
 	err = db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket([]byte(bucketName))
-		if bucket == nil {
+		b := tx.Bucket([]byte(bucketName))
+		b.ForEach(func(k, v []byte) error {
+			items = append(items, string(v))
 			return nil
-		}
-		c := bucket.Cursor()
-		for k, v := c.First(); k != nil; k, v = c.Next() {
-			items = append(items, v)
-		}
+		})
 		return nil
 	})
 	if err != nil {

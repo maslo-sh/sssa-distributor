@@ -7,8 +7,7 @@ type RequestAccessPayload struct {
 }
 
 type ApprovalPayload struct {
-	Share   string
-	Denying bool
+	Share string
 }
 
 type DenialPayload struct {

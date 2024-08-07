@@ -55,20 +55,20 @@ func createHandlers(
 	accessRequestRepo repository.AccessRequestsRepository,
 	conn *ldap.Conn) (handlers.RequestHandler, handlers.ApprovalsHandler, handlers.ManagementHandler, handlers.LoginHandler) {
 
-	return handlers.NewRequestHandler(resourcesRepo, approvingPermsRepo, accessRequestRepo), handlers.NewApprovalsHandler(accessRequestRepo),
+	return handlers.NewRequestHandler(resourcesRepo, approvingPermsRepo, accessRequestRepo), handlers.NewApprovalsHandler(accessRequestRepo, resourcesRepo),
 		handlers.NewManagementHandler(approvingPermsRepo, resourcesRepo), handlers.NewLoginHandler(conn)
 }
 
 func createConnectors() (db *gorm.DB, conn *ldap.Conn, err error) {
 	ldapConn, err := database.ConnectToAD()
 	if err != nil {
-		return nil, nil, err
+		log.Printf("failed to create connection with Active Directory server: %v\n", err)
 	}
 
 	sqlDb, err := database.ConnectToDatabase()
 	if err != nil {
-		return nil, nil, err
+		log.Printf("failed to create connection with Active Directory server: %v\n", err)
 	}
 
-	return sqlDb, ldapConn, nil
+	return sqlDb, ldapConn, err
 }

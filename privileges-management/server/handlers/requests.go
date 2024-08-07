@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"math"
 	"net/http"
@@ -66,7 +67,7 @@ func (rh *RequestHandlerImpl) RequestTemporaryAccess(ctx *gin.Context) {
 
 	rh.requestsRepository.Create(&model.AccessRequest{
 		Username:        req.Username,
-		ResourceID:      uint(req.ResourceID),
+		Resource:        *resource,
 		ValidityInHours: req.ValidityInHours,
 		Status:          "PENDING",
 		GivenApproves:   0,
@@ -91,9 +92,11 @@ func createSharesMapping(shares []string, resource *model.Resource, permissions 
 
 func createSecretsFromCredentials(credentials model.Credentials, resource *model.Resource) ([]string, error) {
 	generatedShares, err := shares.CreateSecretsFromCredentials(resource.MinSharesRequired, resource.SharesCreated, credentials)
+	fmt.Printf("SHARES: %v:\n", generatedShares)
 	if err != nil {
 		return generatedShares, err
 	}
+	fmt.Printf("SHARES: %v:\n", generatedShares)
 
 	return generatedShares, nil
 }

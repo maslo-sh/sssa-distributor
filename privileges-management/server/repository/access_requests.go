@@ -23,13 +23,13 @@ func NewAccessRequestRepository(db *gorm.DB) AccessRequestsRepository {
 
 func (ar *AccessRequestsRepositoryImpl) ReadAll() []model.AccessRequest {
 	var requests []model.AccessRequest
-	ar.db.Find(&requests)
+	ar.db.Preload("Resource").Find(&requests)
 	return requests
 }
 
 func (ar *AccessRequestsRepositoryImpl) Read(id uint) *model.AccessRequest {
 	var fetchedAccessRequest *model.AccessRequest
-	ar.db.First(&fetchedAccessRequest, id)
+	ar.db.Preload("Resource").First(&fetchedAccessRequest, id)
 	return fetchedAccessRequest
 }
 
